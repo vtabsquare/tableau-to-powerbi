@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: t2pbi-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: T2PBI_WORKSPACE
+        value: /data/workspace
+    disk:
+      name: t2pbi-workspace
+      mountPath: /data
+      sizeGB: 10
+    rootDir: backend
+
+  - type: web
+    name: t2pbi-frontend
+    env: node
+    buildCommand: "npm install && npm run build"
+    startCommand: "npx serve -s dist -l $PORT"
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: t2pbi-backend
+          envVarKey: RENDER_EXTERNAL_URL
+    rootDir: frontend
